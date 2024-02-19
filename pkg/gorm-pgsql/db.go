@@ -47,7 +47,7 @@ func NewGorm(config *GormPostgresConfig) (*gorm.DB, error) {
 
 	var gormDb *gorm.DB
 
-	backoff.Retry(func() error {
+	err = backoff.Retry(func() error {
 		gormDb, err = gorm.Open(pgdriver.Open(dsn), &gorm.Config{})
 		if err != nil {
 			return errors.Errorf("failed to connect postgres: %v and connection information: %s", err, dsn)
@@ -55,6 +55,9 @@ func NewGorm(config *GormPostgresConfig) (*gorm.DB, error) {
 
 		return nil
 	}, backoff.WithMaxRetries(bo, uint64(maxRetries-1)))
+	if err != nil {
+		return nil, err
+	}
 
 	return gormDb, nil
 }
